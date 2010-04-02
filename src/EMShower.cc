@@ -28,7 +28,9 @@ EMShower::EMShower(const RandomEngine* engine,
     random(engine),
     myGammaGenerator(gamma)
 { 
-
+  // no tweaking by default
+  RCFactors.resize(5,1.);
+  RTFactors.resize(5,1.);
   // Get the Famos Histos pointer
   //  myHistos = Histos::instance();
   //  myGammaGenerator = GammaFunctionGenerator::instance();
@@ -405,8 +407,8 @@ EMShower::compute() {
       //double taui = t/T;
       double taui = tt/Ti[i];
       double proba = theParam->p(taui,E[i]);
-      double theRC = theParam->rC(taui,E[i]);
-      double theRT = theParam->rT(taui,E[i]);
+      double theRC = theParam->rC(taui,E[i]) * RCFactors[detector];
+      double theRT = theParam->rT(taui,E[i]) * RTFactors[detector];
       
       // Fig. 10
       //    myHistos->fill("h300",taui,theRC);
@@ -625,4 +627,35 @@ EMShower::deposit( double a, double b, double t) {
   //  std::cout << " deposit t = " << t  << " "  << result <<std::endl;
   return result;
 
+}
+
+
+double EMShower::averageRadius(double depth,double & theRC, double &theRT, double &proba) const
+{
+  double avRad=0.;
+  double Etotal=0.;
+  for(unsigned iP=0; iP<nPart;++iP)
+    {
+      double taui = depth/Ti[iP];
+      proba = theParam->p(taui,E[iP]);
+      theRC = theParam->rC(taui,E[iP]);
+      theRT = theParam->rT(taui,E[iP]);
+      // The mean value of radial profile function is pi/2*R 
+      avRad += E[iP]*0.5*M_PI*(proba*theRC+(1.-proba)*theRT);
+      Etotal += E[iP];
+    }
+  // Assume that the average radius is energy-weighted
+  avRad /= Etotal;
+  return avRad;
+}
+
+
+void EMShower::setRCFactor(unsigned det,double factor) {
+  if(det<5)
+    RCFactors[det]=factor;
+}
+
+void EMShower::setRTFactor(unsigned det,double factor) {
+  if(det<5)
+    RTFactors[det]=factor;
 }

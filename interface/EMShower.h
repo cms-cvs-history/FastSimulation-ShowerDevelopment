@@ -65,6 +65,15 @@ class EMShower
   /// set the HCAL address
   void setHcal(HcalHitMaker * const myHcal);
 
+  /// get the average radius at a given step
+  double averageRadius(double depth,double & theRC, double &theRT, double &proba) const;
+
+  /// subdetector-dependent  RC tuning ES1(0), ES2(1), ECAL(2), HCAL(3), HF(4)
+  void setRCFactor(unsigned det,double factor);
+
+  /// subdetector-dependent  RT tuning ES1(0), ES2(1), ECAL(2), HCAL(3), HF(4)
+  void setRTFactor(unsigned det,double factor);  
+  
  private:
 
   // The longitudinal development ersatzt.
@@ -81,7 +90,7 @@ class EMShower
   
   // The parametrization
   EMECALShowerParametrization* const theParam;
-
+  
   // The Calorimeter properties
   const ECALProperties* theECAL;
   const HCALProperties* theHCAL;
@@ -104,6 +113,10 @@ class EMShower
   std::vector<double> TSpot;
   std::vector<double> aSpot; 
   std::vector<double> bSpot;
+
+  // RC and RT tuning
+  std::vector<double> RCFactors;
+  std::vector<double> RTFactors;
 
   // F.B : Use the maximum of the shower rather the center of gravity 
   //  std::vector<double> meanDepth;  
