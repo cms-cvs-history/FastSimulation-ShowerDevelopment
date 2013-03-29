@@ -25,7 +25,8 @@ EMShower::EMShower(const RandomEngine* engine,
 		   DQMStore * const dbeIn,
 		   EcalHitMaker * const myGrid,
 		   PreshowerHitMaker * const myPresh,
-		   bool bFixedLength)
+		   bool bFixedLength, bool detailedShower,
+		   int maxShootsLongitudinal)
 			 
   : theParam(myParam), 
     thePart(myPart), 
@@ -33,7 +34,9 @@ EMShower::EMShower(const RandomEngine* engine,
     thePreshower(myPresh),
     random(engine),
     myGammaGenerator(gamma),
-    bFixedLength_(bFixedLength)
+    bFixedLength_(bFixedLength),
+    detailedShower_(detailedShower),
+    maxShootsLongitudinal_(maxShootsLongitudinal)
 { 
 
   // Get the Famos Histos pointer
@@ -582,7 +585,7 @@ EMShower::compute() {
 	
       }
 
-      if(detailedShowerTail)
+      if(detailedShowerTail || detailedShower_)
 	myGammaGenerator->setParameters(floor(a[i]+0.5),b[i],t-dt);
 	
 
@@ -707,7 +710,7 @@ EMShower::compute() {
 		   // Now the *moliereRadius is done in EcalHitMaker
 		   if ( ecal )
 		     {
-		       if(detailedShowerTail) 
+		       if(detailedShowerTail && !detailedShower_) 
 			 {
 			   //			   std::cout << "About to call addHitDepth " << std::endl;
 			   double depth;
@@ -719,8 +722,20 @@ EMShower::compute() {
 			   theGrid->addHitDepth(ri,phi,depth);
 			   //			   std::cout << " Done " << std::endl;
 			 }
-		       else
+		       else if(detailedShower_){
+			 double depth;
+			 int counter = 0;
+			 do
+			   {
+			     counter++;
+			     depth=myGammaGenerator->shoot();
+			     }
+			 while((depth>t || depth<t-dt) && counter < maxShootsLongitudinal_);
+			 if (counter == maxShootsLongitudinal_) depth = t + dt/2;
+			 theGrid->addHitDepth(ri,phi,depth);
+		       } else {
 			 theGrid->addHit(ri,phi);
+		       }
 		     }
 		   else if (hasPreshower&&presh1) thePreshower->addHit(ri,phi,1);
 		   else if (hasPreshower&&presh2) thePreshower->addHit(ri,phi,2);

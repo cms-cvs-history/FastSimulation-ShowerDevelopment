@@ -44,7 +44,9 @@ class EMShower
 	   DQMStore * const dbeIn = NULL,
 	   EcalHitMaker  * const myGrid=NULL,
 	   PreshowerHitMaker * const myPreshower=NULL,
-	   bool bFixedLength = false);
+	   bool bFixedLength = false,
+	   bool detailedShower = false,
+	   int maxShootsLongitudinal = 5);
 
   virtual ~EMShower(){;}
 
@@ -151,7 +153,9 @@ class EMShower
   GammaFunctionGenerator * myGammaGenerator;
 
   bool bFixedLength_;
-  
+  bool detailedShower_;
+  int maxShootsLongitudinal_;
+
 };
 
 #endif
